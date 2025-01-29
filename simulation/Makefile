@@ -135,7 +135,7 @@ $(WORKING_DIR)/%.sh: $(TEMPLATES_DIR)/%.tmpl.sh
 # Then it will listen to port 3003 to retive a run script
 # This run script will be the one we provided.
 run_emulator:
-	sudo qemu-system-x86_64 \
+	qemu-system-x86_64 \
 		-nographic \
 		-cpu ${CPU} \
 		-smp ${CPUS} \
@@ -154,7 +154,7 @@ run: run_emulator
 # This run script will be the one we provided.
 
 run_simulator:
-	sudo $(GEM5) \
+	$(GEM5) \
 		--outdir=$(WORKING_DIR) \
 			$(GEM5_CONFIG) \
 				--kernel $(WK_KERNEL) \
@@ -226,15 +226,15 @@ serve_stop:
 
 kill_qemu:
 	$(eval PIDS := $(shell pidof qemu-system-x86_64))
-	for p in $(PIDS); do echo $$p; sudo kill $$p; done
+	for p in $(PIDS); do echo $$p; kill $$p; done
 
 kill_gem5:
 	$(eval PIDS := $(shell pidof $(GEM5)))
-	for p in $(PIDS); do echo $$p; sudo kill $$p; done
+	for p in $(PIDS); do echo $$p; kill $$p; done
 
 clean: serve_stop kill_qemu
 	@echo "Clean up"
-	sudo rm -rf $(WORKING_DIR)
+	rm -rf $(WORKING_DIR)
 
 
 # test: serve_start

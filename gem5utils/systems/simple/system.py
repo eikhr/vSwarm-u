@@ -134,6 +134,8 @@ class SimpleSystem(System):
         if issubclass(CPUModel, BaseKvmCPU):
             self.kvm_vm = KvmVM()
             self.mem_mode = 'atomic_noncaching'
+            for proc in self.cpu:
+                proc.usePerf = False
         elif issubclass(CPUModel, BaseAtomicSimpleCPU):
             self.mem_mode = 'atomic'
         else:
