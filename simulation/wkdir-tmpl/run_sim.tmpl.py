@@ -29,6 +29,9 @@ from m5.objects import *
 # import SimpleOpts
 import os
 from pathlib import Path
+
+from resources.gem5.src.arch.x86.X86CPU import X86TimingSimpleCPU
+
 ROOT = '<__ROOT__>'
 print(ROOT)
 
@@ -73,10 +76,7 @@ def parse_arguments():
 
 
 
-def writeRunScript(dir, function_name):
-    n_invocations=20
-    n_warming=5000
-    FN_NAME=function_name
+def writeRunScript(dir):
     tmpl = f"""
 #!/bin/bash
 
@@ -88,12 +88,12 @@ def writeRunScript(dir, function_name):
 m5 fail 1 ## 1: BOOTING complete
 
 ## Spin up Container
-echo "Start the container..."
-docker-compose -f /root/functions.yaml up -d {FN_NAME}
-m5 fail 2 ## 2: Started container
+echo "Start the server containers..."
+docker-compose -f functions.yaml up -d database_server memcache_server web_server &&DOCKER_START_RES=$?
+m5 fail 2 ## 2: Started containers
 
-echo "Pin function container to core 1"
-docker update function --cpuset-cpus 1
+echo "Pin to core 1"
+docker update database_server memcache_server web_server --cpuset-cpus 1
 
 sleep 5
 m5 fail 3 ## 3: Pinned container
@@ -102,17 +102,9 @@ m5 fail 3 ## 3: Pinned container
 
 m5 fail 10 ## 10: Start client
 
-## The client will perform some functional warming
-# and then send a fail code before invoking the
-# function again for the actual measurement.
-/root/test-client \
-    -function-name {FN_NAME} \
-    -url localhost \
-    -port 50000 \
-    -n {n_invocations} \
-    -w {n_warming} \
-    -m5ops \
-    -input 10
+## The client will perform some ramp-up for 10 seconds
+# and then start the actual measurement for 30 seconds.
+docker-compose -f functions.yaml up -d faban_client && INVOKER_RES=$?
 
 m5 fail 11 ## 11: Stop client
 # -------------------------------------------
@@ -258,7 +250,7 @@ if __name__ == "__m5_main__":
     if args.system =="skylake":
         system = SklSystem(args.kernel, args.disk, CPUModel=SklTunedCPU, kvm=kvm)
     else:
-        system = SimpleSystem(args.kernel, args.disk, CPUModel=TimingSimpleCPU, kvm=kvm)
+        system = SimpleSystem(args.kernel, args.disk, CPUModel=X86TimingSimpleCPU, kvm=kvm)
 
     system.m5ops_base = int("ffff0000",16)
 
@@ -272,12 +264,7 @@ if __name__ == "__m5_main__":
 
     # Gem5 will automatically start a run script once booted.
     # The script is retrieved from `readfile`.
-    # if we specify the function argument we generate this run script from the
-    # template.
-    if args.function:
-        system.readfile = writeRunScript(m5.options.outdir, args.function)
-    else:
-        system.readfile = args.script
+    system.readfile = writeRunScript(m5.options.outdir)
 
 
     # set up the root SimObject and start the simulation

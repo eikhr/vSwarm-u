@@ -24,8 +24,6 @@ def parse_arguments():
     parser.add_argument("-s", "--script", action="store", type=str, default="",
                         help="""Specify a script that will be executed automatically
                             after booting from the gem5init service.""")
-    parser.add_argument("-f", "--function", action="store", type=str, default="",
-                        help="""Specify a function that should run in the simulator.""")
     parser.add_argument("--system", type=str, default="simple",choices=["simple", "skylake",],
                         help="""Define the system to be used.""")
 
@@ -33,10 +31,7 @@ def parse_arguments():
 
 
 
-def writeRunScript(dir, function_name):
-    n_invocations=5
-    n_warming=5000
-    FN_NAME=function_name
+def writeRunScript(dir):
     tmpl = f"""
 #!/bin/bash
 
@@ -44,24 +39,21 @@ def writeRunScript(dir, function_name):
 m5 fail 1 ## 1: BOOTING complete
 
 ## Spin up Container
-echo "Start the container..."
-docker-compose -f functions.yaml up -d {FN_NAME} &&DOCKER_START_RES=$?
-m5 fail 2 ## 2: Started container
+echo "Start the server containers..."
+docker-compose -f functions.yaml up -d database_server memcache_server web_server &&DOCKER_START_RES=$?
+m5 fail 2 ## 2: Started containers
 
 echo "Pin to core 1"
-docker update function --cpuset-cpus 1
+docker update database_server memcache_server web_server --cpuset-cpus 1
 
 sleep 5
 m5 fail 3 ## 3: Pinned container
 
 
 ## Now start the warming of the function
-/root/test-client \
-    -function-name {FN_NAME} \
-    -url localhost \
-    -port 50000 \
-    -n {n_warming} -input 10 \
-    && INVOKER_RES=$?
+docker-compose -f functions.yaml up -d faban_client && INVOKER_RES=$?
+
+sleep 10 ## Wait for the ramp-up to complete
 
 m5 fail 4 ## 4: Warming done
 
@@ -69,12 +61,7 @@ m5 fail 4 ## 4: Warming done
 m5 fail 10 ## 10: Start invoking
 
 ## Now start the actual measurement of the function
-/root/test-client \
-    -function-name {FN_NAME} \
-    -url localhost \
-    -port 50000 \
-    -n {n_invocations} -input 10 \
-    && INVOKER_RES=$?
+sleep 30
 
 m5 fail 11 ## 11: Stop invoking
 # -------------------------------------------
@@ -182,12 +169,7 @@ if __name__ == "__m5_main__":
 
     # Gem5 will automatically start a run script once booted.
     # The script is retrieved from `readfile`.
-    # if we specify the function argument we generate this run script from the
-    # template.
-    if args.function:
-        system.readfile = writeRunScript(m5.options.outdir, args.function)
-    else:
-        system.readfile = args.script
+    system.readfile = writeRunScript(m5.options.outdir)
 
 
     # set up the root SimObject and start the simulation
