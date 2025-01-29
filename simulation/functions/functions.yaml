@@ -57,6 +57,12 @@ services:
       - target: 50051
         published: 50000
 
+  syscalls:
+    image: eikhr/syscalls:latest
+    container_name: function
+    ports:
+      - target: 50051
+        published: 50000
 
   ## AES ---------------------------------
   aes-go:

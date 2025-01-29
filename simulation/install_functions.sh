@@ -33,11 +33,11 @@ function pull_test_function {
     sleep 5
 
     ## Now start the invoker
-    /root/test-client \
-        -function-name ${FUNCTION_NAME} \
-        -url localhost \
-        -port 50000 \
-        -n 5 -input 1
+#    /root/test-client \
+#        -function-name ${FUNCTION_NAME} \
+#        -url localhost \
+#        -port 50000 \
+#        -n 5 -input 1
 
     ## Stop container
     docker-compose -f /root/functions.yaml down
