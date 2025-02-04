@@ -30,31 +30,26 @@ from m5.objects import *
 import os
 from pathlib import Path
 
-from resources.gem5.src.arch.x86.X86CPU import X86TimingSimpleCPU
 
 ROOT = '<__ROOT__>'
 print(ROOT)
 
 import sys
 sys.path.append(ROOT +'/gem5utils/systems/') # For the next line...
-from skylake.system import SklSystem
-from skylake.core import SklTunedCPU
 from simple.system import SimpleSystem
 
 import argparse
 def parse_arguments():
     parser = argparse.ArgumentParser(description=
-                        "gem5 config file to run vSwarm benchmarks")
+                                     "gem5 config file to run vSwarm benchmarks")
     parser.add_argument("--kernel", type = str, help = "Path to vmlinux")
     parser.add_argument("--disk", type = str,
-                  help = "Path to the disk image containing your function image")
+                        help = "Path to the disk image containing your function image")
     parser.add_argument("-s", "--script", action="store", type=str, default="",
                         help="""Specify a script that will be executed automatically
                             after booting from the gem5init service.""")
     parser.add_argument("-f", "--function", action="store", type=str, default="",
                         help="""Specify a function that should run in the simulator.""")
-    parser.add_argument("--system", type=str, default="simple",choices=["simple", "skylake",],
-                        help="""Define the system to be used.""")
     parser.add_argument("--atomic-warming", type=int, default=0,
                         help="""Perform warming of the cache hierarchy using the atomic core.""")
     parser.add_argument("--num-invocations", type=int, default=5,
@@ -105,6 +100,17 @@ m5 fail 10 ## 10: Start client
 ## The client will perform some ramp-up for 10 seconds
 # and then start the actual measurement for 30 seconds.
 docker-compose -f functions.yaml up -d faban_client && INVOKER_RES=$?
+
+m5 fail 31 ## 31: Start warming
+
+sleep 10
+
+m5 fail 32 ## 32: Stop warming
+
+grep pcid /proc/cpuinfo
+cat /proc/cr4
+
+sleep 30 # benchmark runs for 30 seconds
 
 m5 fail 11 ## 11: Stop client
 # -------------------------------------------
@@ -202,6 +208,7 @@ def executeM5FailCode(code):
         ckp="{}/{}/cpt.{}".format(args.checkpoint_dir, args.function, ckp_name)
         print("Create checkpoint: ", ckp)
         m5.checkpoint(ckp)
+        return True
 
     if code == -1:
         prGreen("Simulation done.")
@@ -247,10 +254,7 @@ if __name__ == "__m5_main__":
     kvm = True if args.mode == "setup" else False
 
     # create the system we are going to simulate
-    if args.system =="skylake":
-        system = SklSystem(args.kernel, args.disk, CPUModel=SklTunedCPU, kvm=kvm)
-    else:
-        system = SimpleSystem(args.kernel, args.disk, CPUModel=X86TimingSimpleCPU, kvm=kvm)
+    system = SimpleSystem(args.kernel, args.disk, num_cpus=1, CPUModel=X86TimingSimpleCPU, kvm=kvm)
 
     system.m5ops_base = int("ffff0000",16)
 
