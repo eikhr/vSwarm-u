@@ -222,12 +222,25 @@ def simulate():
     - user exits
     - or the run script exits with fail code -1
     '''
+    dump_stats_period = 100_000
+    system.cpu[0].scheduleInstStop(0, dump_stats_period, "periodic_statistics")
+
     _exit=False
     while not _exit:
         print("Start simulation...")
         exit_event = m5.simulate()
 
-        if exit_event.getCause() == "m5_fail instruction encountered":
+        if exit_event.getCause() == "periodic_statistics":
+            # If under 1 million instructions have been executed, reschedule the event
+            num_insts = m5.stats.stats_dict['numInsts'].value
+            if num_insts < dump_stats_period:
+                system.cpu[0].scheduleInstStop(0, dump_stats_period - num_insts, "periodic_statistics")
+            else:
+                m5.stats.dump()
+                m5.stats.reset()
+                system.cpu[0].scheduleInstStop(0, dump_stats_period, "periodic_statistics")
+
+        elif exit_event.getCause() == "m5_fail instruction encountered":
             _exit=executeM5FailCode(exit_event.getCode())
 
         elif exit_event.getCause() == "workbegin":
