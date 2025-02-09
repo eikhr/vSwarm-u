@@ -254,7 +254,7 @@ if __name__ == "__m5_main__":
     kvm = True if args.mode == "setup" else False
 
     # create the system we are going to simulate
-    system = SimpleSystem(args.kernel, args.disk, num_cpus=1, CPUModel=X86TimingSimpleCPU, kvm=kvm)
+    system = SimpleSystem(args.kernel, args.disk, num_cpus=1, CPUModel=X86O3CPU, kvm=kvm)
 
     system.m5ops_base = int("ffff0000",16)
 
