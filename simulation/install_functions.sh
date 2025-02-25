@@ -70,6 +70,14 @@ for f in $FUNCTIONS
     pull_test_function $f
   done
 
+## Install DCPerf
+sudo apt update
+sudo apt install -y python3-pip git
+sudo pip3 install click pyyaml tabulate pandas
+git clone https://github.com/facebookresearch/DCPerf.git
+cd DCPerf
+./benchpress_cli.py install oss_performance_mediawiki_mlp
+
 ## Catch for failiure ----------
 } || {
   echo "\033[0;31m----------------"
