@@ -67,16 +67,24 @@ FUNCTIONS=$(cat /root/functions.list | sed '/^\s*#/d;/^\s*$/d')
 
 for f in $FUNCTIONS
   do
-    pull_test_function $f
+#    pull_test_function $f
   done
 
 ## Install DCPerf
+
+# curl -O -L "https://github.com/facebookresearch/DCPerf/releases/download/hhvm/hhvm-3.30-multplatform-binary-ubuntu.tar.xz"
+# tar -Jxf hhvm-3.30-multplatform-binary-ubuntu.tar.xz
+# cd hhvm
+# sudo ./pour-hhvm.sh
+# cd ..
+
+git clone https://github.com/facebookresearch/DCPerf.git
+cd DCPerf
 sudo apt update
 sudo apt install -y python3-pip git
 sudo pip3 install click pyyaml tabulate pandas
-git clone https://github.com/facebookresearch/DCPerf.git
-cd DCPerf
-./benchpress_cli.py install oss_performance_mediawiki_mlp
+python3 --version
+python3 ./benchpress_cli.py install django_workload_default
 
 ## Catch for failiure ----------
 } || {

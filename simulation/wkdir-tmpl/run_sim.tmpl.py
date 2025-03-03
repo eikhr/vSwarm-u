@@ -72,10 +72,38 @@ def parse_arguments():
 
 
 def writeRunScript(dir):
+    spin_up = """
+echo "Start the server containers..."
+docker-compose -f functions.yaml up -d database_server memcache_server web_server &&DOCKER_START_RES=$?
+    """ if function == "cloudsuite_web" else ""
+
+    pin = """
+echo "Pin to core 1"
+docker update database_server memcache_server web_server --cpuset-cpus 1
+sleep 5
+    """ if function == "cloudsuite_web" else ""
+
+    start_load = """
+## The client will perform some ramp-up for 10 seconds
+# and then start the actual measurement for 30 seconds.
+docker-compose -f functions.yaml up -d faban_client && INVOKER_RES=$?
+    """ if function == "cloudsuite_web" else ""
+
+    warming = """
+sleep 10
+    """ if function == "cloudsuite_web" else ""
+
+
+    running = """
+sleep 30 # benchmark runs for 30 seconds
+    """ if function == "cloudsuite_web" else """
+echo "Run django workload..."
+./benchpress_cli.py run django_workload_default -r standalone
+    """
+    
+
     tmpl = f"""
 #!/bin/bash
-
-## Define the image name of your function.
 
 # We use the 'm5 fail <code>' magic instruction to indicate the
 # python script where in workflow the system currently is.
@@ -83,34 +111,24 @@ def writeRunScript(dir):
 m5 fail 1 ## 1: BOOTING complete
 
 ## Spin up Container
-echo "Start the server containers..."
-docker-compose -f functions.yaml up -d database_server memcache_server web_server &&DOCKER_START_RES=$?
+{spin_up}
 m5 fail 2 ## 2: Started containers
 
-echo "Pin to core 1"
-docker update database_server memcache_server web_server --cpuset-cpus 1
+{pin}
 
-sleep 5
 m5 fail 3 ## 3: Pinned container
-
-
 
 m5 fail 10 ## 10: Start client
 
-## The client will perform some ramp-up for 10 seconds
-# and then start the actual measurement for 30 seconds.
-docker-compose -f functions.yaml up -d faban_client && INVOKER_RES=$?
+{start_load}
 
 m5 fail 31 ## 31: Start warming
 
-sleep 10
+{warming}
 
 m5 fail 32 ## 32: Stop warming
 
-grep pcid /proc/cpuinfo
-cat /proc/cr4
-
-sleep 30 # benchmark runs for 30 seconds
+{running}
 
 m5 fail 11 ## 11: Stop client
 # -------------------------------------------
