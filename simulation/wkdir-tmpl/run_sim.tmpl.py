@@ -241,7 +241,7 @@ def simulate():
     - user exits
     - or the run script exits with fail code -1
     '''
-    dump_stats_period = 100_000
+    dump_stats_period = 1_000_000
     system.cpu[0].scheduleInstStop(0, dump_stats_period, "periodic_statistics")
 
     _exit=False
