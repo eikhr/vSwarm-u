@@ -34,14 +34,13 @@ from m5.objects import *
 import os
 from pathlib import Path
 
-from skylake.system import SklSystem
-from skylake.core import SklTunedCPU
-
 ROOT = '<__ROOT__>'
 print(ROOT)
 
 import sys
 sys.path.append(ROOT +'/gem5utils/systems/') # For the next line...
+from skylake.system import SklSystem
+from skylake.core import SklTunedCPU
 
 import argparse
 def parse_arguments():
