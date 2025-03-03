@@ -30,13 +30,14 @@ from m5.objects import *
 import os
 from pathlib import Path
 
+from skylake.system import SklSystem
+from skylake.core import SklTunedCPU
 
 ROOT = '<__ROOT__>'
 print(ROOT)
 
 import sys
 sys.path.append(ROOT +'/gem5utils/systems/') # For the next line...
-from simple.system import SimpleSystem
 
 import argparse
 def parse_arguments():
@@ -268,7 +269,7 @@ if __name__ == "__m5_main__":
     kvm = True if args.mode == "setup" else False
 
     # create the system we are going to simulate
-    system = SimpleSystem(args.kernel, args.disk, num_cpus=1, CPUModel=X86O3CPU, kvm=kvm)
+    system = SklSystem(args.kernel, args.disk, CPUModel=SklTunedCPU, num_cpus=1, kvm=kvm)
 
     system.m5ops_base = int("ffff0000",16)
 
