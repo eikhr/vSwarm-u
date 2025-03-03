@@ -20,6 +20,10 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+b64_program = """
+
+"""
+
 
 from distutils.log import fatal
 import m5
@@ -73,7 +77,22 @@ def parse_arguments():
 
 
 def writeRunScript(dir):
-    tmpl = f"""
+    if args.function == "b64-binary":
+        tmpl = f"""
+#!/bin/bash
+m5 fail 1 ## 1: BOOTING complete
+
+echo "{b64_program}" | base64 -d > function
+chmod +x function
+
+m5 fail 32 ## 32: Stop warming / Take checkpoint
+
+./function
+sleep 1
+m5 fail -1 ## 5: Test done
+"""
+    else:
+        tmpl = f"""
 #!/bin/bash
 
 ## Define the image name of your function.
