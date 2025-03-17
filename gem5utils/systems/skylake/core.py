@@ -178,6 +178,10 @@ class BranchPred(LTAGE):
 
     tage = LTAGE_BP()
 
+    # "Infinitely" large BTBs
+    btbUser = SimpleBTB(numEntries=2097152, associativity=2097152, tagBits=32)
+    btbKernel = SimpleBTB(numEntries=2097152, associativity=2097152, tagBits=32)
+
 depth = 3
 width = 4
 class SklVerbatimCPU(X86O3CPU):
