@@ -178,9 +178,16 @@ class BranchPred(LTAGE):
 
     tage = LTAGE_BP()
 
-    # "Infinitely" large BTBs
+class InfBTBBranchPred(BranchPred):
     btbUser = SimpleBTB(numEntries=2097152, associativity=2097152, tagBits=32)
     btbKernel = SimpleBTB(numEntries=2097152, associativity=2097152, tagBits=32)
+
+class SplitBTBBranchPred(BranchPred):
+    btbUser = SimpleBTB(numEntries=4096, associativity=1, tagBits=16)
+    btbKernel = SimpleBTB(numEntries=1024, associativity=1, tagBits=16)
+
+class SingleBTBBranchPred(BranchPred):
+    btbUser = SimpleBTB(numEntries=5120, associativity=1, tagBits=16)
 
 depth = 3
 width = 4
@@ -267,6 +274,16 @@ class SklTunedCPU(X86O3CPU):
     SQEntries = 56 * 2
     numPhysIntRegs = 270
     numPhysFloatRegs = 252
+
+
+class InfBTBCPU(SklTunedCPU):
+    branchPred = InfBTBBranchPred()
+
+class SplitBTBCPU(SklTunedCPU):
+    branchPred = SplitBTBBranchPred()
+
+class SingleBTBCPU(SklTunedCPU):
+    branchPred = SingleBTBBranchPred()
 
 depth = 3
 width = 32

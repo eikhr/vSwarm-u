@@ -40,7 +40,7 @@ print(ROOT)
 import sys
 sys.path.append(ROOT +'/gem5utils/systems/') # For the next line...
 from skylake.system import SklSystem
-from skylake.core import SklTunedCPU
+from skylake.core import SklTunedCPU, InfBTBCPU, SplitBTBCPU, SingleBTBCPU
 
 import argparse
 def parse_arguments():
@@ -63,6 +63,7 @@ def parse_arguments():
                                 warming and then take a snapshot.
                                 Evaluation mode: Will start from a previously taken checkpoint
                                 do some """)
+    parser.add_argument("--btb", type = str, help = "Type of btb setup, 'inf', 'split' or 'single'")
     parser.add_argument("--take-checkpoints", action="store_true", default=False,
                         help="""Take a checkpoint after system is configured and ready
                             to start the proper simulation""")
@@ -283,8 +284,13 @@ if __name__ == "__m5_main__":
 
     kvm = True if args.mode == "setup" else False
 
+    cpuModel = InfBTBCPU if args.btb == "inf" else \
+          SplitBTBCPU if args.btb == "split" else \
+          SingleBTBCPU if args.btb == "single" else \
+          fatal("Invalid btb type")
+
     # create the system we are going to simulate
-    system = SklSystem(args.kernel, args.disk, CPUModel=SklTunedCPU, num_cpus=1, kvm=kvm)
+    system = SklSystem(args.kernel, args.disk, CPUModel=cpuModel, num_cpus=1, kvm=kvm)
 
     system.m5ops_base = int("ffff0000",16)
 
