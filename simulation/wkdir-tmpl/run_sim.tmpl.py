@@ -122,14 +122,11 @@ docker-compose -f functions.yaml up -d faban_client && INVOKER_RES=$?
 
 m5 fail 31 ## 31: Start warming
 
-sleep 10
+sleep 20
 
 m5 fail 32 ## 32: Stop warming
 
-grep pcid /proc/cpuinfo
-cat /proc/cr4
-
-sleep 30 # benchmark runs for 30 seconds
+sleep 10 # run benchmark for 10 seconds
 
 m5 fail 11 ## 11: Stop client
 # -------------------------------------------
