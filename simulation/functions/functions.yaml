@@ -157,4 +157,4 @@ services:
     network_mode: "host"
     command:
       - web_server # WEB_SERVER_IP
-      - "1" # LOAD_SCALE
+      - "10" # LOAD_SCALE
