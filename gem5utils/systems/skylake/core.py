@@ -179,15 +179,18 @@ class BranchPred(LTAGE):
     tage = LTAGE_BP()
 
 class InfBTBBranchPred(BranchPred):
-    btbUser = SimpleBTB(numEntries=2097152, associativity=2097152, tagBits=32)
-    btbKernel = SimpleBTB(numEntries=2097152, associativity=2097152, tagBits=32)
+    btbUser = SimpleBTB(numEntries=1048576, associativity=32, tagBits=16)
+    btbKernel = SimpleBTB(numEntries=1048576, associativity=32, tagBits=16)
+
+class InfSingleBTBBranchPred(BranchPred):
+    btbUser = SimpleBTB(numEntries=1048576, associativity=32, tagBits=16)
 
 class SplitBTBBranchPred(BranchPred):
-    btbUser = SimpleBTB(numEntries=4096, associativity=1, tagBits=16)
-    btbKernel = SimpleBTB(numEntries=1024, associativity=1, tagBits=16)
+    btbUser = SimpleBTB(numEntries=4096, associativity=8, tagBits=12)
+    btbKernel = SimpleBTB(numEntries=1024, associativity=8, tagBits=12)
 
 class SingleBTBBranchPred(BranchPred):
-    btbUser = SimpleBTB(numEntries=5120, associativity=1, tagBits=16)
+    btbUser = SimpleBTB(numEntries=5120, associativity=10, tagBits=12)
 
 depth = 3
 width = 4
@@ -278,6 +281,9 @@ class SklTunedCPU(X86O3CPU):
 
 class InfBTBCPU(SklTunedCPU):
     branchPred = InfBTBBranchPred()
+
+class InfSingleBTBCPU(SklTunedCPU):
+    branchPred = InfSingleBTBBranchPred()
 
 class SplitBTBCPU(SklTunedCPU):
     branchPred = SplitBTBBranchPred()
