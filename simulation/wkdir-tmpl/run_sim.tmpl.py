@@ -107,8 +107,10 @@ echo "Start the server containers..."
 docker-compose -f functions.yaml up -d database_server memcache_server web_server &&DOCKER_START_RES=$?
 m5 fail 2 ## 2: Started containers
 
-echo "Pin to core 1"
-docker update database_server memcache_server web_server --cpuset-cpus 1
+echo "Pin to different cores"
+docker update database_server --cpuset-cpus 1
+docker update memcache_server --cpuset-cpus 2
+docker update web_server --cpuset-cpus 3
 
 sleep 5
 m5 fail 3 ## 3: Pinned container
@@ -120,6 +122,7 @@ m5 fail 10 ## 10: Start client
 ## The client will perform some ramp-up for 10 seconds
 # and then start the actual measurement for 30 seconds.
 docker-compose -f functions.yaml up -d faban_client && INVOKER_RES=$?
+docker update faban_client --cpuset-cpus 0
 
 m5 fail 31 ## 31: Start warming
 
@@ -290,7 +293,7 @@ if __name__ == "__m5_main__":
           fatal("Invalid btb type")
 
     # create the system we are going to simulate
-    system = SklSystem(args.kernel, args.disk, CPUModel=cpuModel, num_cpus=1, kvm=kvm)
+    system = SklSystem(args.kernel, args.disk, CPUModel=cpuModel, num_cpus=4, kvm=kvm)
 
     system.m5ops_base = int("ffff0000",16)
 
