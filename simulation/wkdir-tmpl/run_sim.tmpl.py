@@ -63,9 +63,10 @@ def parse_arguments():
                                 warming and then take a snapshot.
                                 Evaluation mode: Will start from a previously taken checkpoint
                                 do some """)
-    parser.add_argument("--btb", type = str, help = "Type of btb setup, 'inf', 'split' or 'single'")
+    parser.add_argument("--btb", type = str, choices=['inf', 'split', 'single', 'custom'])
     parser.add_argument("--btb-user-entries", type = int, default=4096)
     parser.add_argument("--btb-kernel-entries", type = int, default=4096)
+    parser.add_argument("--stats-interval", type = float, default=1_000_000)
     parser.add_argument("--take-checkpoints", action="store_true", default=False,
                         help="""Take a checkpoint after system is configured and ready
                             to start the proper simulation""")
@@ -244,8 +245,8 @@ def simulate():
     - user exits
     - or the run script exits with fail code -1
     '''
-    dump_stats_period = 1_000_000
-    system.cpu[0].scheduleInstStop(0, dump_stats_period, "periodic_statistics")
+    if (args.stats_interval > 0):
+        system.cpu[0].scheduleInstStop(0, args.stats_interval, "periodic_statistics")
 
     _exit=False
     while not _exit:
@@ -261,7 +262,7 @@ def simulate():
             # else:
             m5.stats.dump()
             m5.stats.reset()
-            system.cpu[0].scheduleInstStop(0, dump_stats_period, "periodic_statistics")
+            system.cpu[0].scheduleInstStop(0, args.stats_interval, "periodic_statistics")
 
         elif exit_event.getCause() == "m5_fail instruction encountered":
             _exit=executeM5FailCode(exit_event.getCode())
