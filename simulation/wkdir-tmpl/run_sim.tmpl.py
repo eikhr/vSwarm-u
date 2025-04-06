@@ -135,6 +135,10 @@ m5 fail 32 ## 32: Stop warming
 
 sleep 10 # run benchmark for 10 seconds
 
+# Dump the logs from the client
+docker cp faban_client:/faban/output/ ./faban_client_output
+ls -lh ./faban_client_output
+
 m5 fail 11 ## 11: Stop client
 # -------------------------------------------
 
