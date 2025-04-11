@@ -133,22 +133,27 @@ services:
   database_server:
     image: cloudsuite/web-serving:db_server
     container_name: database_server
+    tty: true
 
   memcache_server:
     image: cloudsuite/web-serving:memcached_server
     container_name: memcache_server
+    tty: true
 
   web_server:
     image: cloudsuite/web-serving:web_server
     container_name: web_server
+    tty: true
     entrypoint:
       - /etc/bootstrap.sh
-      - https # PROTOCOL
-      - web_server # WEB_SERVER_IP
+      - http # PROTOCOL
+      - localhost # WEB_SERVER_IP
       - database_server # DATABASE_SERVER_IP
       - memcache_server # MEMCACHED_SERVER_IP
       - "4" # MAX_PM_CHILDREN
       - auto # WORKER_PROCESS
+    ports:
+      - "8080:8080"
 
   # load generator
   faban_client:
@@ -156,5 +161,5 @@ services:
     container_name: faban_client
     network_mode: "host"
     command:
-      - web_server # WEB_SERVER_IP
-      - "10" # LOAD_SCALE
+      - localhost # WEB_SERVER_IP
+      - "1" # LOAD_SCALE

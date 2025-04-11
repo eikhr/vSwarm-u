@@ -107,7 +107,7 @@ m5 fail 1 ## 1: BOOTING complete
 
 ## Spin up Container
 echo "Start the server containers..."
-docker-compose -f functions.yaml up -d database_server memcache_server web_server &&DOCKER_START_RES=$?
+docker-compose -f functions.yaml up -d database_server memcache_server web_server && DOCKER_START_RES=$?
 m5 fail 2 ## 2: Started containers
 
 echo "Pin to different cores"
@@ -133,11 +133,8 @@ sleep 20
 
 m5 fail 32 ## 32: Stop warming
 
-sleep 10 # run benchmark for 10 seconds
-
-# Dump the logs from the client
-docker cp faban_client:/faban/output/ ./faban_client_output
-ls -lh ./faban_client_output
+docker-compose -f functions.yaml attach faban_client # Run benchmark until complete
+# sleep 10 # run benchmark for 10 seconds
 
 m5 fail 11 ## 11: Stop client
 # -------------------------------------------
