@@ -40,7 +40,7 @@ print(ROOT)
 import sys
 sys.path.append(ROOT +'/gem5utils/systems/') # For the next line...
 from skylake.system import SklSystem
-from skylake.core import SklTunedCPU, InfBTBCPU, SplitBTBCPU, SingleBTBCPU, BranchPred
+from skylake.core import SklTunedCPU, InfBTBCPU, SplitBTBCPU, SplitBTBSmallCPU, SingleBTBCPU, BranchPred
 
 import argparse
 def parse_arguments():
@@ -63,7 +63,7 @@ def parse_arguments():
                                 warming and then take a snapshot.
                                 Evaluation mode: Will start from a previously taken checkpoint
                                 do some """)
-    parser.add_argument("--btb", type = str, choices=['inf', 'split', 'single', 'custom'])
+    parser.add_argument("--btb", type = str, choices=['inf', 'split', 'split2', 'single', 'custom'])
     parser.add_argument("--btb-user-entries", type = int, default=4096)
     parser.add_argument("--btb-kernel-entries", type = int, default=4096)
     parser.add_argument("--stats-interval", type = float, default=1_000_000)
@@ -306,6 +306,7 @@ if __name__ == "__m5_main__":
     else:
         cpuModel = InfBTBCPU if args.btb == "inf" else \
               SplitBTBCPU if args.btb == "split" else \
+              SplitBTBSmallCPU if args.btb == "split2" else \
               SingleBTBCPU if args.btb == "single" else \
               fatal("Invalid btb type")
 
