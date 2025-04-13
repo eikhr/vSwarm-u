@@ -107,7 +107,7 @@ m5 fail 1 ## 1: BOOTING complete
 
 ## Spin up Container
 echo "Start the server containers..."
-docker-compose -f functions.yaml up -d database_server memcache_server web_server && DOCKER_START_RES=$?
+docker-compose -f /root/functions.yaml up -d database_server memcache_server web_server
 m5 fail 2 ## 2: Started containers
 
 echo "Pin to different cores"
@@ -115,27 +115,31 @@ docker update database_server --cpuset-cpus 1
 docker update memcache_server --cpuset-cpus 2
 docker update web_server --cpuset-cpus 3
 
+echo "Wait 5 seconds for containers to be ready"
 sleep 5
 m5 fail 3 ## 3: Pinned container
-
 
 
 m5 fail 10 ## 10: Start client
 
 ## The client will perform some ramp-up for 10 seconds
 # and then start the actual measurement for 30 seconds.
-docker-compose -f functions.yaml up -d faban_client && INVOKER_RES=$?
+echo "Start the client container..."
+docker-compose -f /root/functions.yaml up -d faban_client
 docker update faban_client --cpuset-cpus 0
 
 m5 fail 31 ## 31: Start warming
 
+exho "Wait 10 seconds for the client to warm up"
 sleep 10
 
 m5 fail 32 ## 32: Stop warming
 
-docker-compose -f functions.yaml attach faban_client # Run benchmark until complete
+echo "Attach to the client container to see benchmark output..."
+docker-compose -f /root/functions.yaml attach faban_client # Run benchmark until complete
 # sleep 10 # run benchmark for 10 seconds
 
+echo "Benchmark done. Stop the client container..."
 m5 fail 11 ## 11: Stop client
 # -------------------------------------------
 
