@@ -129,7 +129,7 @@ docker update faban_client --cpuset-cpus 0
 
 m5 fail 31 ## 31: Start warming
 
-sleep 20
+sleep 10
 
 m5 fail 32 ## 32: Stop warming
 

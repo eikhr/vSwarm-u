@@ -131,7 +131,7 @@ services:
 
 # CloudSuite web-serving
   database_server:
-    image: cloudsuite/web-serving:db_server
+    image: eikhr/cloudsuite_web_db
     container_name: database_server
     tty: true
 
