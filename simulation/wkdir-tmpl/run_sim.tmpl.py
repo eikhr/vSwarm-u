@@ -130,7 +130,7 @@ docker update faban_client --cpuset-cpus 0
 
 m5 fail 31 ## 31: Start warming
 
-exho "Wait 10 seconds for the client to warm up"
+echo "Wait 10 seconds for the client to warm up"
 sleep 10
 
 m5 fail 32 ## 32: Stop warming

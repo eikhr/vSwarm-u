@@ -17,39 +17,6 @@ function end_logging {
   exec 2>&4 1>&3
 }
 
-
-function pull_test_function {
-    FUNCTION_NAME=$1
-
-    echo "Install and test: ${FUNCTION_NAME} "
-
-    ## Make sure no other containers are running
-    docker-compose -f /root/functions.yaml down --remove-orphans
-
-    ## Pull the image from regestry
-    docker-compose -f /root/functions.yaml pull ${FUNCTION_NAME}
-    docker-compose -f /root/functions.yaml up -d --remove-orphans ${FUNCTION_NAME}
-
-    sleep 5
-
-    ## Now start the invoker
-    /root/test-client \
-        -function-name ${FUNCTION_NAME} \
-        -url localhost \
-        -port 50000 \
-        -n 5 -input 1
-
-    ## Stop container
-    docker-compose -f /root/functions.yaml down
-    CONTAINERS="$(docker ps -a -q)"
-    if [ $(expr length "$CONTAINERS") -gt 0 ];
-    then
-      docker stop $CONTAINERS
-      docker rm $CONTAINERS
-    fi
-}
-
-
 start_logging
 {
 # set -e
@@ -65,9 +32,10 @@ curl  "http://10.0.2.2:3003/functions.list" -f -o /root/functions.list
 ## List all functions can be commented out
 FUNCTIONS=$(cat /root/functions.list | sed '/^\s*#/d;/^\s*$/d')
 
-for f in $FUNCTIONS
+for function_name in $FUNCTIONS
   do
-    pull_test_function $f
+    echo "Pulling function: ${function_name}"
+    docker-compose -f /root/functions.yaml pull "${function_name}"
   done
 
 ## Catch for failiure ----------
