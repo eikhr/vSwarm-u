@@ -141,7 +141,7 @@ services:
     tty: true
 
   web_server:
-    image: cloudsuite/web-serving:web_server
+    image: eikhr/cloudsuite_web_web
     container_name: web_server
     tty: true
     entrypoint:
