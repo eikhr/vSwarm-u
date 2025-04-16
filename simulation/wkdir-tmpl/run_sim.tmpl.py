@@ -115,10 +115,25 @@ docker update database_server --cpuset-cpus 1
 docker update memcache_server --cpuset-cpus 2
 docker update web_server --cpuset-cpus 3
 
-echo "Wait 5 seconds for containers to be ready"
-sleep 5
-m5 fail 3 ## 3: Pinned container
+m5 fail 3 ## 3: Pinned containers
 
+echo "Wait for containers to be ready"s
+
+# Function to test the URL
+test_url() {{
+  if curl --output /dev/null --silent --head --fail "localhost:8080"; then
+    echo "localhost:8080 is up and running!"
+    return 0
+  else
+    return 1
+  fi
+}}
+
+# Loop until the URL is reachable
+while ! test_url; do
+  echo "Waiting for localhost:8080 to be available..."
+  sleep 5  # Wait for 5 seconds before retrying
+done
 
 m5 fail 10 ## 10: Start client
 
