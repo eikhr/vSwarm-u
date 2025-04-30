@@ -163,3 +163,4 @@ services:
     command:
       - localhost # WEB_SERVER_IP
       - "1" # LOAD_SCALE
+      - "--oper=run"

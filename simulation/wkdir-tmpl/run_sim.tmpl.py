@@ -135,6 +135,10 @@ while ! test_url; do
   sleep 5  # Wait for 5 seconds before retrying
 done
 
+# Run client build and usergen
+echo "Run usergen"
+docker-compose -f /root/functions.yaml run --rm faban_client localhost 1 --oper=usergen
+
 m5 fail 10 ## 10: Start client
 
 ## The client will perform some ramp-up for 10 seconds
