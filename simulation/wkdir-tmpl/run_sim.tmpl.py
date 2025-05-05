@@ -135,28 +135,67 @@ while ! test_url; do
   sleep 5  # Wait for 5 seconds before retrying
 done
 
-# Run client build and usergen
-echo "Run usergen"
-docker-compose -f /root/functions.yaml run --rm faban_client localhost 1 --oper=usergen
-
 m5 fail 10 ## 10: Start client
-
-## The client will perform some ramp-up for 10 seconds
-# and then start the actual measurement for 30 seconds.
-echo "Start the client container..."
-docker-compose -f /root/functions.yaml up -d faban_client
-docker update faban_client --cpuset-cpus 0
+echo "No client container needed"
 
 m5 fail 31 ## 31: Start warming
-
-echo "Wait 10 seconds for the client to warm up"
+echo "Wait 10 seconds"
 sleep 10
-
 m5 fail 32 ## 32: Stop warming
 
-echo "Attach to the client container to see benchmark output..."
-docker-compose -f /root/functions.yaml attach faban_client # Run benchmark until complete
-# sleep 10 # run benchmark for 10 seconds
+echo "Do some requests..."
+
+echo "Home page..."
+# Fetch home page HTML content and save cookies
+COOKIE_FILE=$(mktemp)
+HTML_CONTENT=$(curl -s -c "$COOKIE_FILE" http://localhost:8080)
+
+echo "Activity page..."
+curl http://localhost:8080/activity -b "$COOKIE_FILE" > /dev/null
+
+echo "Log in..."
+# Extract token and timestamp from HTML login form
+TOKEN=$(echo "$HTML_CONTENT" | sed -n 's/.*name="__elgg_token" value="\([^"]*\)".*/\1/p' | head -n 1)
+TIMESTAMP=$(echo "$HTML_CONTENT" | sed -n 's/.*name="__elgg_ts" value="\([^"]*\)".*/\1/p' | head -n 1)
+# Define the URL and form fields
+LOGIN_URL="http://localhost:8080/action/login"
+FORM_NAME="aPksVSYYiu"
+FORM_PASS="54g3rkfAJ7"
+# Check if token and timestamp were extracted successfully
+if [ -z "$TOKEN" ] || [ -z "$TIMESTAMP" ]; then
+    echo "Failed to extract token or timestamp."
+    exit 1
+fi
+# Send the login request using curl
+curl -X POST "$LOGIN_URL" \
+     -H "Accept: application/json, text/javascript, */*; q=0.01" \
+     -H "Accept-Language: en" \
+     -H "Connection: keep-alive" \
+     -H "Content-Type: application/x-www-form-urlencoded" \
+     -H "Origin: http://localhost:8080" \
+     -H "Referer: http://localhost:8080/" \
+     -H "X-Requested-With: XMLHttpRequest" \
+     -H "X-Elgg-Ajax-API: 2" \
+     -H "DNT: 1" \
+     -H "User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36" \
+     -H "sec-ch-ua: \"Google Chrome\";v=\"135\", \"Not-A.Brand\";v=\"8\", \"Chromium\";v=\"135\"" \
+     -H "sec-ch-ua-mobile: ?0" \
+     -H "sec-ch-ua-platform: \"macOS\"" \
+     -b "$COOKIE_FILE" \
+     -d "__elgg_token=$TOKEN" \
+     -d "__elgg_ts=$TIMESTAMP" \
+     -d "username=$FORM_NAME" \
+     -d "password=$FORM_PASS" \
+     -d "returntoreferer=true"
+# Check the response
+if [ $? -eq 0 ]; then
+    echo "Login request sent successfully."
+else
+    echo "Failed to send login request."
+fi
+
+echo "Profile page..."
+curl localhost:8080/profile/aPksVSYYiu -b "$COOKIE_FILE" > /dev/null
 
 echo "Benchmark done. Stop the client container..."
 m5 fail 11 ## 11: Stop client
