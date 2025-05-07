@@ -143,20 +143,22 @@ echo "Wait 10 seconds"
 sleep 10
 m5 fail 32 ## 32: Stop warming
 
-echo "Do some requests..."
-
-echo "Home page..."
-# Fetch home page HTML content and save cookies
+echo "START: Do some requests..."
 COOKIE_FILE=$(mktemp)
+echo "Finished creating cookie file"
+
+echo "Fetch home page..."
+# Fetch home page HTML content and save cookies
 HTML_CONTENT=$(curl -s -c "$COOKIE_FILE" http://localhost:8080)
 
-echo "Activity page..."
+echo "Fetch activity page..."
 curl http://localhost:8080/activity -b "$COOKIE_FILE" > /dev/null
 
-echo "Log in..."
+echo "Extract data to log in..."
 # Extract token and timestamp from HTML login form
-TOKEN=$(echo "$HTML_CONTENT" | sed -n 's/.*name="__elgg_token" value="\([^"]*\)".*/\1/p' | head -n 1)
-TIMESTAMP=$(echo "$HTML_CONTENT" | sed -n 's/.*name="__elgg_ts" value="\([^"]*\)".*/\1/p' | head -n 1)
+TOKEN=$(echo "$HTML_CONTENT" | sed -n 's/.*name="__elgg_token" value="\([^"]*\)".*/\\1/p' | head -n 1)
+TIMESTAMP=$(echo "$HTML_CONTENT" | sed -n 's/.*name="__elgg_ts" value="\([^"]*\)".*/\\1/p' | head -n 1)
+
 # Define the URL and form fields
 LOGIN_URL="http://localhost:8080/action/login"
 FORM_NAME="aPksVSYYiu"
@@ -166,7 +168,8 @@ if [ -z "$TOKEN" ] || [ -z "$TIMESTAMP" ]; then
     echo "Failed to extract token or timestamp."
     exit 1
 fi
-# Send the login request using curl
+
+echo "Send login request"
 curl -X POST "$LOGIN_URL" \
      -H "Accept: application/json, text/javascript, */*; q=0.01" \
      -H "Accept-Language: en" \
@@ -178,9 +181,9 @@ curl -X POST "$LOGIN_URL" \
      -H "X-Elgg-Ajax-API: 2" \
      -H "DNT: 1" \
      -H "User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36" \
-     -H "sec-ch-ua: \"Google Chrome\";v=\"135\", \"Not-A.Brand\";v=\"8\", \"Chromium\";v=\"135\"" \
+     -H "sec-ch-ua: \\"Google Chrome\\";v=\\"135\\", \\"Not-A.Brand\\";v=\\"8\\", \\"Chromium\\";v=\\"135\\"" \
      -H "sec-ch-ua-mobile: ?0" \
-     -H "sec-ch-ua-platform: \"macOS\"" \
+     -H "sec-ch-ua-platform: \\"macOS\\"" \
      -b "$COOKIE_FILE" \
      -d "__elgg_token=$TOKEN" \
      -d "__elgg_ts=$TIMESTAMP" \
@@ -194,7 +197,7 @@ else
     echo "Failed to send login request."
 fi
 
-echo "Profile page..."
+echo "Fetch profile page..."
 curl localhost:8080/profile/aPksVSYYiu -b "$COOKIE_FILE" > /dev/null
 
 echo "Benchmark done. Stop the client container..."
