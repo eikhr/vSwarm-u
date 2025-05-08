@@ -19,6 +19,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+import math
 
 b64_program = """
 
@@ -354,8 +355,8 @@ if __name__ == "__m5_main__":
 
     if args.btb == "custom":
         class CustomBTBBranchPred(BranchPred):
-            btbUser = SimpleBTB(numEntries=args.btb_user_entries, associativity=8, tagBits=12)
-            btbKernel = SimpleBTB(numEntries=args.btb_kernel_entries, associativity=8, tagBits=12)
+            btbUser = SimpleBTB(numEntries=args.btb_user_entries, associativity=math.ceil(args.btb_user_entries/512), tagBits=42)
+            btbKernel = SimpleBTB(numEntries=args.btb_kernel_entries, associativity=math.ceil(args.btb_kernel_entries/512), tagBits=42)
 
         class CustomBTBCPU(SklTunedCPU):
             branchPred = CustomBTBBranchPred()

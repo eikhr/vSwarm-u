@@ -181,22 +181,22 @@ class BranchPred(LTAGE):
     tage = LTAGE_BP()
 
 class InfBTBBranchPred(BranchPred):
-    btbUser = SimpleBTB(numEntries=1048576, associativity=32, tagBits=16)
-    btbKernel = SimpleBTB(numEntries=1048576, associativity=32, tagBits=16)
+    btbUser = SimpleBTB(numEntries=1048576, associativity=32, tagBits=42)
+    btbKernel = SimpleBTB(numEntries=1048576, associativity=32, tagBits=42)
 
 class InfSingleBTBBranchPred(BranchPred):
-    btbUser = SimpleBTB(numEntries=1048576, associativity=32, tagBits=16)
+    btbUser = SimpleBTB(numEntries=1048576, associativity=32, tagBits=42)
 
 class SplitBTBBranchPred(BranchPred):
-    btbUser = SimpleBTB(numEntries=4096, associativity=8, tagBits=12)
-    btbKernel = SimpleBTB(numEntries=1024, associativity=8, tagBits=12)
+    btbUser = SimpleBTB(numEntries=4096, associativity=8, tagBits=42)
+    btbKernel = SimpleBTB(numEntries=1024, associativity=2, tagBits=42)
 
 class SplitBTBSmallBranchPred(BranchPred):
-    btbUser = SimpleBTB(numEntries=3072, associativity=6, tagBits=12)
-    btbKernel = SimpleBTB(numEntries=1024, associativity=2, tagBits=12)
+    btbUser = SimpleBTB(numEntries=3072, associativity=6, tagBits=42)
+    btbKernel = SimpleBTB(numEntries=1024, associativity=2, tagBits=42)
 
 class SingleBTBBranchPred(BranchPred):
-    btbUser = SimpleBTB(numEntries=5120, associativity=10, tagBits=12)
+    btbUser = SimpleBTB(numEntries=5120, associativity=10, tagBits=42)
 
 depth = 3
 width = 4
