@@ -201,19 +201,8 @@ fi
 echo "Fetch profile page..."
 curl localhost:8080/profile/aPksVSYYiu -b "$COOKIE_FILE" > /dev/null
 
-echo "Benchmark done. Stop the client container..."
-m5 fail 11 ## 11: Stop client
-# -------------------------------------------
-
-
-## Stop container
-docker-compose -f /root/functions.yaml down
-m5 fail 6 ## 6: Container stop
-
-
-## M5 fail -1 will exit the simulations
-m5 fail -1 ## 5: Test done
-
+echo "Benchmark done. Stop simulation..."
+m5 fail -1 ## 11: M5 fail -1 will exit the simulations
 """
     input_file_name = '{}/{}'.format(dir, "run.sh")
     with open(input_file_name, "w") as f:
