@@ -314,7 +314,8 @@ def simulate():
     '''
     if (args.stats_interval > 0):
         for i in range(len(system.cpu)):
-            system.cpu[i].scheduleInstStop(0, args.stats_interval, "periodic_statistics" + str(i))
+            for j in range(32):
+                system.cpu[i].scheduleInstStop(j, args.stats_interval, "periodic_statistics_" + str(i) + "_" + str(j))
 
     _exit=False
     while not _exit:
@@ -322,10 +323,10 @@ def simulate():
         exit_event = m5.simulate()
 
         if exit_event.getCause().startswith("periodic_statistics"):
+            [_, __, cpu_num, tid] = exit_event.getCause().split("_")
             m5.stats.dump()
             m5.stats.reset()
-            cpu_num = int(exit_event.getCause()[-1])
-            system.cpu[cpu_num].scheduleInstStop(0, args.stats_interval, "periodic_statistics" + str(i))
+            system.cpu[int(cpu_num)].scheduleInstStop(int(tid), args.stats_interval, "periodic_statistics_" + str(cpu_num) + "_" + str(tid))
 
         elif exit_event.getCause() == "m5_fail instruction encountered":
             _exit=executeM5FailCode(exit_event.getCode())
