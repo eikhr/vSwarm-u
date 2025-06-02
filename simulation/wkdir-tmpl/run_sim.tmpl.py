@@ -344,9 +344,10 @@ if __name__ == "__m5_main__":
     kvm = True if args.mode == "setup" else False
 
     if args.btb == "custom":
+        stackDistProbe = StackDistProbe()
         class CustomBTBBranchPred(BranchPred):
-            btbUser = SimpleBTB(numEntries=args.btb_user_entries, associativity=math.ceil(args.btb_user_entries/512), tagBits=42)
-            btbKernel = SimpleBTB(numEntries=args.btb_kernel_entries, associativity=math.ceil(args.btb_kernel_entries/512), tagBits=42)
+            btbUser = SimpleBTB(numEntries=args.btb_user_entries, associativity=math.ceil(args.btb_user_entries/512), tagBits=42, stackDistProbe=stackDistProbe)
+            btbKernel = SimpleBTB(numEntries=args.btb_kernel_entries, associativity=math.ceil(args.btb_kernel_entries/512), tagBits=42, stackDistProbe=stackDistProbe)
 
         class CustomBTBCPU(SklTunedCPU):
             branchPred = CustomBTBBranchPred()
